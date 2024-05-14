@@ -1,0 +1,1 @@
+## peer-to-peer encrypted file storage system using hashing techniques for key generation and file encryption. Implemented features such as versioning, caching and indexing for efficient data management.
