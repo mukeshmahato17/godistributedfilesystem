@@ -27,6 +27,7 @@ type TCPTransport struct {
 	listenAddress string
 	listener      net.Listener
 	handshakeFunc HandshakeFunc
+	decoder       Decoder
 
 	mu   sync.RWMutex
 	peer map[string]Peer
@@ -58,12 +59,26 @@ func (t *TCPTransport) startAccepttLoop() {
 			fmt.Printf("tcp error %s\n", err)
 		}
 
+		fmt.Printf("new incomming connection +%v\n", conn)
 		go t.handleConn(conn)
 	}
 }
 
+type Temp struct{}
+
 func (t *TCPTransport) handleConn(conn net.Conn) {
 	peer := NewTCPPeer(conn, true)
 
-	fmt.Printf("new incomming connection +%v\n", peer)
+	if err := t.handshakeFunc(peer); err != nil {
+
+	}
+
+	msg := &Temp{}
+	for {
+		if err := t.decoder.Decode(conn, msg); err != nil {
+			fmt.Printf("TCP error : %s\n", err)
+			continue
+		}
+
+	}
 }
