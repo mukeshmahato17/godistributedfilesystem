@@ -14,7 +14,7 @@ func TestTransformFunc(t *testing.T) {
 
 func TestStore(t *testing.T) {
 	opts := StoreOpts{
-		PathTransformFunc: DefaultPathTransformFunc,
+		PathTransformFunc: CASPathTransformFunc,
 	}
 
 	s := NewStore(opts)
