@@ -1,29 +1,30 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/mukeshmahato17/godistributedfilesystem/p2p"
 )
 
-func OnPeer(peer p2p.Peer) error {
-	peer.Close()
-	// fmt.Println("doing some logic with the peer outside the TCPTransport")
-	return nil
-}
-
 func main() {
-	tcpOpts := p2p.TCPTransportOpts{
+	tcpTransportOpts := p2p.TCPTransportOpts{
 		ListenAddr:    ":3000",
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
-		OnPeer:        OnPeer,
+		// TODO: onPeer func
+	}
+	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
+
+	fileServerOpts := FileServerOpts{
+		StorageRoot:       "3000_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport:         tcpTransport,
 	}
 
-	tr := p2p.NewTCPTransport(tcpOpts)
+	s := NewFileServer(fileServerOpts)
 
-	if err := tr.ListenAndAccept(); err != nil {
-		log.Fatal(err)
+	if err := s.Start(); err != nil {
+		fmt.Errorf("%s", err)
 	}
 
 	select {}
