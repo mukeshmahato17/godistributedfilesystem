@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"time"
 
 	"github.com/mukeshmahato17/godistributedfilesystem/p2p"
 )
@@ -23,8 +24,13 @@ func main() {
 
 	s := NewFileServer(fileServerOpts)
 
+	go func() {
+		time.Sleep(time.Second * 3)
+		s.Stop()
+	}()
+
 	if err := s.Start(); err != nil {
-		fmt.Errorf("%s", err)
+		log.Fatal(err)
 	}
 
 	select {}
