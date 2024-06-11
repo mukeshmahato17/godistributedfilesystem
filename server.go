@@ -39,6 +39,10 @@ func (s *FileServer) Stop() {
 	close(s.quitch)
 }
 
+func (s *FileServer) Store(key string, r io.Reader) error {
+	return s.store.writeStream(key, r)
+}
+
 func (s *FileServer) loop() {
 	defer func() {
 		fmt.Println("file server stopped due to user quit action")
@@ -80,8 +84,4 @@ func (s *FileServer) Start() error {
 	s.loop()
 
 	return nil
-}
-
-func (s *FileServer) Store(key string, r io.Reader) error {
-	return s.store.writeStream(key, r)
 }
