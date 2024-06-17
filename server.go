@@ -56,31 +56,34 @@ type Message struct {
 	Payload any
 }
 
-type DataMessage struct {
-	Key  string
-	Data []byte
-}
-
 func (s *FileServer) StoreData(key string, r io.Reader) error {
-	// 1. store this file to disk
-	// 2. broadcast this files to all the known peers to the network
+	// // 1. store this file to disk
+	// // 2. broadcast this files to all the known peers to the network
 
-	buf := new(bytes.Buffer)
-	tee := io.TeeReader(r, buf)
-
-	if err := s.store.Write(key, tee); err != nil {
-		return err
+	for _, peer := range s.peers {
+		if err := peer.Send(); err != nil {
+			return err
+		}
 	}
+	// buf := new(bytes.Buffer)
+	// tee := io.TeeReader(r, buf)
 
-	p := &DataMessage{
-		Key:  key,
-		Data: buf.Bytes(),
-	}
+	// if err := s.store.Write(key, tee); err != nil {
+	// 	return err
+	// }
 
-	return s.broadcast(&Message{
-		From:    "todo",
-		Payload: p,
-	})
+	// p := &DataMessage{
+	// 	Key:  key,
+	// 	Data: buf.Bytes(),
+	// }
+
+	// msg := &Message{
+	// 	From:    "fff",
+	// 	Payload: p,
+	// }
+	// fmt.Println("%+v", msg)
+
+	// return s.broadcast(msg)
 }
 
 func (s *FileServer) Stop() {
