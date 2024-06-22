@@ -25,7 +25,7 @@ func (dec DefaultDecoder) Decode(r io.Reader, msg *RPC) error {
 		return err
 	}
 
-	msg.payload = buf[:n]
+	msg.Payload = buf[:n]
 
 	return nil
 }
