@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/mukeshmahato17/godistributedfilesystem/p2p"
 )
@@ -56,14 +55,21 @@ type Message struct {
 	Payload any
 }
 
+type MessageStoreFile struct {
+	Key string
+}
+
 func (s *FileServer) StoreData(key string, r io.Reader) error {
 	// // 1. store this file to disk
 	// // 2. broadcast this files to all the known peers to the network
 
 	buf := new(bytes.Buffer)
 	msg := Message{
-		Payload: []byte("storagekey"),
+		Payload: MessageStoreFile{
+			Key: key,
+		},
 	}
+
 	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
 		return err
 	}
@@ -74,14 +80,13 @@ func (s *FileServer) StoreData(key string, r io.Reader) error {
 		}
 	}
 
-	time.Sleep(time.Second * 3)
-
-	payload := []byte("THIS LARGE FILE")
-	for _, peer := range s.peers {
-		if err := peer.Send(payload); err != nil {
-			return err
-		}
-	}
+	// time.Sleep(time.Second * 3)
+	// payload := []byte("THIS LARGE FILE")
+	// for _, peer := range s.peers {
+	// 	if err := peer.Send(payload); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 	// buf := new(bytes.Buffer)
@@ -114,7 +119,6 @@ func (s *FileServer) OnPeer(p p2p.Peer) error {
 	defer s.peerLock.Unlock()
 
 	s.peers[p.RemoteAddr().String()] = p
-
 	log.Printf("connected with remote %s", p.RemoteAddr())
 
 	return nil
@@ -138,7 +142,7 @@ func (s *FileServer) loop() {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("recv: %s\n", string(msg.Payload.([]byte)))
+			fmt.Printf("payload: %+v\n", msg.Payload)
 
 			peer, ok := s.peers[rpc.From]
 			if !ok {
@@ -199,5 +203,5 @@ func (s *FileServer) Start() error {
 }
 
 func init() {
-
+	gob.Register(MessageStoreFile{})
 }
