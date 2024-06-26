@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/mukeshmahato17/godistributedfilesystem/p2p"
 )
@@ -80,13 +81,14 @@ func (s *FileServer) StoreData(key string, r io.Reader) error {
 		}
 	}
 
-	// time.Sleep(time.Second * 3)
-	// payload := []byte("THIS LARGE FILE")
-	// for _, peer := range s.peers {
-	// 	if err := peer.Send(payload); err != nil {
-	// 		return err
-	// 	}
-	// }
+	time.Sleep(time.Second * 3)
+
+	payload := []byte("THIS LARGE FILE")
+	for _, peer := range s.peers {
+		if err := peer.Send(payload); err != nil {
+			return err
+		}
+	}
 
 	return nil
 	// buf := new(bytes.Buffer)
@@ -141,22 +143,26 @@ func (s *FileServer) loop() {
 			if err := gob.NewDecoder(bytes.NewReader(rpc.Payload)).Decode(&msg); err != nil {
 				log.Fatal(err)
 			}
-
-			fmt.Printf("payload: %+v\n", msg.Payload)
-
-			peer, ok := s.peers[rpc.From]
-			if !ok {
-				panic("peer not found in peers map")
+			if err := s.handleMessage(rpc.From, &msg); err != nil {
+				fmt.Println(err)
+				return
 			}
 
-			b := make([]byte, 1000)
-			if _, err := peer.Read(b); err != nil {
-				panic(err)
-			}
+			// fmt.Printf("payload: %+v\n", msg.Payload)
 
-			fmt.Printf("recv: %s\n", string(b))
+			// peer, ok := s.peers[rpc.From]
+			// if !ok {
+			// 	panic("peer not found in peers map")
+			// }
 
-			peer.(*p2p.TCPPeer).Wg.Done()
+			// b := make([]byte, 1000)
+			// if _, err := peer.Read(b); err != nil {
+			// 	panic(err)
+			// }
+
+			// fmt.Printf("recv: %s\n", string(b))
+
+			// peer.(*p2p.TCPPeer).Wg.Done()
 
 			// if err := s.handleMessage(&m); err != nil {
 			// 	log.Println(err)
@@ -167,13 +173,18 @@ func (s *FileServer) loop() {
 	}
 }
 
-// func (s *FileServer) handleMessage(msg *Message) error {
-// 	switch v := msg.Payload.(type) {
-// 	case *DataMessage:
-// 		fmt.Println("recieved data %+v\n", v)
-// 	}
-// 	return nil
-// }
+func (s *FileServer) handleMessage(from string, msg *Message) error {
+	switch v := msg.Payload.(type) {
+	case MessageStoreFile:
+		return s.handleMessageStoreFile(from, v)
+	}
+	return nil
+}
+
+func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) error {
+	fmt.Printf("recv store file msg: %+v\n", msg)
+	return nil
+}
 
 func (s *FileServer) bootStrapNetwork() error {
 	for _, addr := range s.BootstrapNodes {
