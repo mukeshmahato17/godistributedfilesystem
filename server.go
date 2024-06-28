@@ -148,25 +148,6 @@ func (s *FileServer) loop() {
 				return
 			}
 
-			// fmt.Printf("payload: %+v\n", msg.Payload)
-
-			// peer, ok := s.peers[rpc.From]
-			// if !ok {
-			// 	panic("peer not found in peers map")
-			// }
-
-			// b := make([]byte, 1000)
-			// if _, err := peer.Read(b); err != nil {
-			// 	panic(err)
-			// }
-
-			// fmt.Printf("recv: %s\n", string(b))
-
-			// peer.(*p2p.TCPPeer).Wg.Done()
-
-			// if err := s.handleMessage(&m); err != nil {
-			// 	log.Println(err)
-			// }
 		case <-s.quitch:
 			return
 		}
@@ -187,7 +168,13 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 		return fmt.Errorf("peer (%s) could not be found in peer list", from)
 	}
 
-	return s.store.Write(msg.Key, peer)
+	if err := s.store.Write(msg.Key, peer); err != nil {
+		return nil
+	}
+
+	peer.(*p2p.TCPPeer).Wg.Done()
+
+	return nil
 
 }
 
